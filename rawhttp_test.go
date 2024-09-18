@@ -1,13 +1,13 @@
 package rawhttp
 
 import (
-	"fmt"
+	"io/ioutil"
 	"net/http/httputil"
 	"testing"
 )
 
 func TestGet(t *testing.T) {
-	url := "http://scanme.sh"
+	url := "https://sourceforge.net/projects/liblcl/files/v2.3.7/liblcl-49.WindowsXP_SP3_64.zip"
 	client := NewClient(DefaultOptions)
 	resp, err := client.Get(url)
 	if err != nil {
@@ -17,5 +17,5 @@ func TestGet(t *testing.T) {
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(string(bin))
+	ioutil.WriteFile("liblcl-49.WindowsXP_SP3_64.zip", bin, 0644)
 }
