@@ -63,20 +63,20 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 
 // DoRaw does a raw request with some configuration
 func (c *Client) DoRaw(method, url, uripath string, headers map[string][]string, body io.Reader) (*http.Response, error) {
-	redirectstatus := &RedirectStatus{
+	rs := &RedirectStatus{
 		FollowRedirects: true,
 		MaxRedirects:    c.Options.MaxRedirects,
 	}
-	return c.do(method, url, uripath, headers, body, redirectstatus, c.Options)
+	return c.do(method, url, uripath, headers, body, rs, c.Options)
 }
 
 // DoRawWithOptions performs a raw request with additional options
 func (c *Client) DoRawWithOptions(method, url, uripath string, headers map[string][]string, body io.Reader, options *Options) (*http.Response, error) {
-	redirectstatus := &RedirectStatus{
+	rs := &RedirectStatus{
 		FollowRedirects: options.FollowRedirects,
 		MaxRedirects:    c.Options.MaxRedirects,
 	}
-	return c.do(method, url, uripath, headers, body, redirectstatus, options)
+	return c.do(method, url, uripath, headers, body, rs, options)
 }
 
 func (c *Client) getConn(protocol, host string, options *Options) (Conn, error) {
