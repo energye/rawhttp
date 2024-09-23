@@ -31,6 +31,17 @@ func TestGetSource(t *testing.T) {
 	bufRead(resp, "liblcl.Windows64.zip")
 }
 
+func TestGetTxtSource(t *testing.T) {
+	url := "https://sourceforge.net/projects/liblcl/files/v2.3.7/md5.txt"
+	client := NewClient(DefaultOptions)
+	resp, err := client.Get(url)
+	if err != nil {
+		panic(err)
+	}
+	defer resp.Body.Close()
+	bufRead(resp, "md5.txt")
+}
+
 func bufRead(resp *http.Response, saveName string) {
 	if resp.Body == nil {
 		return
