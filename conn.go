@@ -1,10 +1,15 @@
 package rawhttp
 
 import (
+	"context"
 	"crypto/tls"
+	"fmt"
 	"github.com/energye/rawhttp/client"
+	"github.com/energye/rawhttp/proxy"
 	"io"
 	"net"
+	"net/url"
+	"strings"
 	"sync"
 	"time"
 )
@@ -13,6 +18,7 @@ import (
 type Dialer interface {
 	// Dial dials a remote http server returning a Conn.
 	Dial(protocol, addr string, options *Options) (Conn, error)
+	DialWithProxy(protocol, addr, proxyURL string, timeout time.Duration) (Conn, error)
 	// DialTimeout dials a remote http server with timeout returning a Conn.
 	DialTimeout(protocol, addr string, timeout time.Duration, options *Options) (Conn, error)
 }
@@ -50,6 +56,64 @@ func (d *dialer) dialTimeout(protocol, addr string, timeout time.Duration, optio
 		Conn:   c,
 		dialer: d,
 	}, err
+}
+
+func (d *dialer) DialWithProxy(protocol, addr, proxyURL string, timeout time.Duration) (Conn, error) {
+	var c net.Conn
+	u, err := url.Parse(proxyURL)
+	if err != nil {
+		return nil, fmt.Errorf("unsupported proxy error: %w", err)
+	}
+	switch u.Scheme {
+	case "http":
+		c, err = proxy.HTTPDialer(proxyURL, timeout)(addr)
+	case "socks5", "socks5h":
+		c, err = proxy.Socks5Dialer(proxyURL, timeout)(addr)
+	default:
+		return nil, fmt.Errorf("unsupported proxy protocol: %s", proxyURL)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("proxy error: %w", err)
+	}
+	if protocol == "https" {
+		if c, err = TlsHandshake(c, addr, timeout); err != nil {
+			return nil, fmt.Errorf("tls handshake error: %w", err)
+		}
+	}
+	return &conn{
+		Client: client.NewClient(c),
+		Conn:   c,
+		dialer: d,
+	}, err
+}
+
+// TlsHandshake tls handshake on a plain connection
+func TlsHandshake(conn net.Conn, addr string, timeout time.Duration) (net.Conn, error) {
+	colonPos := strings.LastIndex(addr, ":")
+	if colonPos == -1 {
+		colonPos = len(addr)
+	}
+	hostname := addr[:colonPos]
+
+	var (
+		ctx    context.Context
+		cancel context.CancelFunc
+	)
+	if timeout > 0 {
+		ctx, cancel = context.WithTimeout(context.Background(), timeout)
+		defer cancel()
+	} else {
+		ctx = context.Background()
+	}
+
+	tlsConn := tls.Client(conn, &tls.Config{
+		InsecureSkipVerify: true,
+		ServerName:         hostname,
+	})
+	if err := tlsConn.HandshakeContext(ctx); err != nil {
+		return nil, err
+	}
+	return tlsConn, nil
 }
 
 func clientDial(protocol, addr string, timeout time.Duration, options *Options) (net.Conn, error) {

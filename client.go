@@ -80,6 +80,9 @@ func (c *Client) DoRawWithOptions(method, url, uripath string, headers map[strin
 }
 
 func (c *Client) getConn(protocol, host string, options *Options) (Conn, error) {
+	if options.Proxy != "" {
+		return c.dialer.DialWithProxy(protocol, host, c.Options.Proxy, c.Options.ProxyDialTimeout)
+	}
 	var conn Conn
 	var err error
 	if options.Timeout > 0 {
