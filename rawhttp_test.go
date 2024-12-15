@@ -45,7 +45,7 @@ func TestGetTxtSource(t *testing.T) {
 func TestProxtGetTxtSource(t *testing.T) {
 	url := "https://sourceforge.net/projects/liblcl/files/v2.3.7/md5.txt"
 	options := *DefaultOptions
-	options.Proxy = "https://127.0.0.1:10809"
+	options.Proxy = "http://127.0.0.1:10809"
 	client := NewClient(&options)
 	resp, err := client.Get(url)
 	if err != nil {
