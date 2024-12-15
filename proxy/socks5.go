@@ -1,14 +1,12 @@
 package proxy
 
 import (
+	"golang.org/x/net/proxy"
 	"net"
 	"net/url"
-	"time"
-
-	"golang.org/x/net/proxy"
 )
 
-func Socks5Dialer(proxyAddr string, timeout time.Duration) DialFunc {
+func Socks5Dialer(proxyAddr string) DialFunc {
 	var (
 		u      *url.URL
 		err    error
