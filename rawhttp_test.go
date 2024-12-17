@@ -10,7 +10,7 @@ import (
 )
 
 func TestGetSource(t *testing.T) {
-	url := "https://energy.yanghy.cn/energye/liblcl/releases/download/v2.3.7/liblcl.Windows64.zip"
+	url := "https://sourceforge.net/projects/liblcl/files/v2.3.8/liblcl-109.Windows64.zip"
 	client := NewClient(DefaultOptions)
 	resp, err := client.Get(url)
 	if err != nil {
@@ -31,8 +31,8 @@ func TestGetTxtSource(t *testing.T) {
 	bufRead(resp, "md5.txt")
 }
 
-func _TestProxtGetTxtSource(t *testing.T) {
-	url := "https://sourceforge.net/projects/liblcl/files/v2.3.7/md5.txt"
+func _TestProxyGetSource(t *testing.T) {
+	url := "https://sourceforge.net/projects/liblcl/files/v2.3.8/liblcl-109.Windows64.zip"
 	options := *DefaultOptions
 	options.Proxy = "http://127.0.0.1:10809"
 	client := NewClient(&options)
@@ -41,7 +41,7 @@ func _TestProxtGetTxtSource(t *testing.T) {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	bufRead(resp, "md5.txt")
+	bufRead(resp, "liblcl-109.Windows64.zip")
 }
 
 func bufRead(resp *http.Response, saveName string) {
