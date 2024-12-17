@@ -3,7 +3,9 @@ package rawhttp
 import (
 	"fmt"
 	"io"
+	"log"
 	"net/http"
+	"net/http/cookiejar"
 	"net/url"
 	"strings"
 	"time"
@@ -13,6 +15,7 @@ import (
 type Client struct {
 	dialer  Dialer
 	Options *Options
+	jar     *cookiejar.Jar
 }
 
 // AutomaticHostHeader sets Host header for requests automatically
@@ -27,9 +30,11 @@ func AutomaticContentLength(enable bool) {
 
 // NewClient creates a new rawhttp client with provided options
 func NewClient(options *Options) *Client {
+	jar, _ := cookiejar.New(nil)
 	client := &Client{
 		dialer:  new(dialer),
 		Options: options,
+		jar:     jar,
 	}
 	return client
 }
@@ -57,7 +62,6 @@ func (c *Client) Do(req *http.Request) (*http.Response, error) {
 	headers := req.Header
 	url := req.URL.String()
 	body := req.Body
-
 	return c.DoRaw(method, url, "", headers, body)
 }
 
@@ -67,7 +71,7 @@ func (c *Client) DoRaw(method, url, uripath string, headers map[string][]string,
 		FollowRedirects: true,
 		MaxRedirects:    c.Options.MaxRedirects,
 	}
-	return c.do(method, url, uripath, headers, body, rs, c.Options)
+	return c.send(method, url, headers, body, rs, c.Options)
 }
 
 // DoRawWithOptions performs a raw request with additional options
@@ -91,6 +95,39 @@ func (c *Client) getConn(protocol, host string, options *Options) (Conn, error) 
 		conn, err = c.dialer.Dial(protocol, host, options)
 	}
 	return conn, err
+}
+
+func (c *Client) send(method, uri string, headers map[string][]string, body io.Reader, redirectStatus *RedirectStatus, options *Options) (*http.Response, error) {
+	client := &http.Client{
+		Jar: c.jar,
+		CheckRedirect: func(req *http.Request, via []*http.Request) error {
+			return nil
+		},
+	}
+	req, err := http.NewRequest(method, uri, body)
+	if err != nil {
+		return nil, err
+	}
+	for key, val := range headers {
+		req.Header.Set(key, val[0])
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return resp, nil
+	//defer resp.Body.Close()
+	//
+	//for _, cookie := range c.jar.Cookies(resp.Request.URL) {
+	//	fmt.Printf("Cookie: %s=%s\n", cookie.Name, cookie.Value)
+	//}
+	//
+	//bodydata, err := ioutil.ReadAll(resp.Body)
+	//if err != nil {
+	//	log.Fatal(err)
+	//}
+	//fmt.Println(string(body))
 }
 
 func (c *Client) do(method, uri, uriPath string, headers map[string][]string, body io.Reader, redirectStatus *RedirectStatus, options *Options) (*http.Response, error) {
