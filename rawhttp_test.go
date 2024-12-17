@@ -31,7 +31,7 @@ func TestGetTxtSource(t *testing.T) {
 	bufRead(resp, "md5.txt")
 }
 
-func _TestProxyGetSource(t *testing.T) {
+func TestProxyGetSource(t *testing.T) {
 	url := "https://sourceforge.net/projects/liblcl/files/v2.3.8/liblcl-109.Windows64.zip"
 	options := *DefaultOptions
 	options.Proxy = "http://127.0.0.1:10809"

@@ -27,11 +27,11 @@ func Do(req *http.Request) (*http.Response, error) {
 }
 
 // DoRaw does a raw request with some configuration
-func DoRaw(method, url, uripath string, headers map[string][]string, body io.Reader) (*http.Response, error) {
-	return DefaultClient.DoRaw(method, url, uripath, headers, body)
+func DoRaw(method, url string, headers map[string][]string, body io.Reader) (*http.Response, error) {
+	return DefaultClient.DoRaw(method, url, headers, body)
 }
 
 // DoRawWithOptions does a raw request with some configuration
-func DoRawWithOptions(method, url, uripath string, headers map[string][]string, body io.Reader, options *Options) (*http.Response, error) {
-	return DefaultClient.DoRawWithOptions(method, url, uripath, headers, body, options)
+func DoRawWithOptions(method, url string, headers map[string][]string, body io.Reader, options *Options) (*http.Response, error) {
+	return DefaultClient.DoRawWithOptions(method, url, headers, body, options)
 }
