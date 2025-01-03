@@ -10,14 +10,14 @@ import (
 )
 
 func TestGetSource(t *testing.T) {
-	url := "https://sourceforge.net/projects/liblcl/files/v2.3.8/liblcl-109.Windows64.zip"
+	url := "https://sourceforge.net/projects/nsis/files/NSIS%203/3.10/nsis-3.10-src.tar.bz2"
 	client := NewClient(DefaultOptions)
 	resp, err := client.Get(url)
 	if err != nil {
 		panic(err)
 	}
 	defer resp.Body.Close()
-	bufRead(resp, "liblcl.Windows64.zip")
+	bufRead(resp, "nsis-3.10-src.tar.bz2")
 }
 
 func TestGetTxtSource(t *testing.T) {
